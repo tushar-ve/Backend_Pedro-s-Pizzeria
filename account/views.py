@@ -6,6 +6,8 @@ from django.contrib.auth import authenticate
 from .renderers import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from .email import *
+# from rest_framework.filters import SearchFilter
+from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 def get_tokens_for_user(user):
@@ -91,7 +93,17 @@ class MenuDescriptionView(APIView):
         except Exception as e:
             return Response({'status': 403, 'message': 'Menu item doesnot exists'}, status=status.HTTP_403_FORBIDDEN)
 
-
+# search on the basis of Name
+class SearchMenuAPIView(APIView):
+    def get(self, request):
+        search = request.GET.get('name')
+        if search:
+            items = MenuItem.objects.filter(name__icontains=search)
+            serializer = MenuItemSerializer(items, many=True)
+            print(items)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'status': 404, 'message': 'Menu item not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class UserLoginView(APIView):
     def post(self, request, format=None):

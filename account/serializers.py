@@ -123,6 +123,11 @@ class MenuItemSerializer(serializers.ModelSerializer):
         model = MenuItem
         fields = '__all__'
 
+class MenuItemSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MenuItem
+        fields = ['name']
+
 
 class AboutUsSerializer(serializers.ModelSerializer):
     class Meta:
