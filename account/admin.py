@@ -39,3 +39,4 @@ admin.site.register(User, UserModelAdmin)
 admin.site.register(MenuItem)
 
 admin.site.register(AboutUsModel)
+admin.site.register(AddCartItemModel)

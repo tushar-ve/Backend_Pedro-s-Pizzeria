@@ -139,3 +139,16 @@ class AboutUsSerializer(serializers.ModelSerializer):
 class VerifyAccountSerializer(serializers.Serializer):
    email = serializers.EmailField()
    otp = serializers.CharField()
+   class Meta:
+      model= User
+      fields=['otp', 'email']
+
+
+class AddToCartSerializer(serializers.Serializer):
+   class Meta:
+      model = AddCartItemModel, MenuItem
+      field='__all__'
+         
+
+
+

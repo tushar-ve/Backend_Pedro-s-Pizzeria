@@ -28,5 +28,6 @@ urlpatterns = [
     path('aboutus/', AboutUsView.as_view()),
     path('verify/', VerifyOTP.as_view()),
     path('get-names/',SearchMenuAPIView.as_view()),
-    path('menuitems/<str:item_id>/', MenuDescriptionView.as_view())
+    path('menuitems/<str:item_id>/', MenuDescriptionView.as_view()),
+    path('add-cart/', AddCartItemAPIView.as_view())
 ]

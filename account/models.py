@@ -100,6 +100,19 @@ class AboutUsModel(models.Model):
 
     def __str__(self) :
         return self.des_title
+    
+
+
+class AddCartItemModel(models.Model):
+    cart_no = models.AutoField(primary_key=True)
+    qty=models.IntegerField(null=True,blank=True,default=0)
+    user= models.ForeignKey(User,on_delete=models.CASCADE)
+    name= models.ForeignKey(MenuItem, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+      return self.name.name  # Assuming "name" is the string attribute of the MenuItem model
+
 
 
 

@@ -182,3 +182,28 @@ class AboutUsView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+
+
+class AddCartItemAPIView(APIView):
+    def post(self, request, format=None):
+        data = request.data
+
+        
+        user_id = data.get('id')
+        menu_item_id = data.get('item_id')
+        quantity = data.get('qty')
+
+        try:
+            user = User.objects.get(id=user_id)
+            menu_item = MenuItem.objects.get(id=menu_item_id)
+
+            cart_item =AddToCartSerializer(user=user, name=menu_item, qty=quantity)
+            cart_item.save()
+
+            return Response({'message': 'Item added to cart successfully.'}, status=status.HTTP_201_CREATED)
+        except User.DoesNotExist:
+            return Response({'message': 'User does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+        except MenuItem.DoesNotExist:
+            return Response({'message': 'Menu item does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
