@@ -29,5 +29,7 @@ urlpatterns = [
     path('verify/', VerifyOTP.as_view()),
     path('get-names/',SearchMenuAPIView.as_view()),
     path('menuitems/<str:item_id>/', MenuDescriptionView.as_view()),
-    path('add-cart/', AddCartItemAPIView.as_view())
+    path('add-cart/', CartItemListCreateAPIView.as_view()),
+    path('order/', OrderCreateView.as_view()),
+    path('order/<str:order_id>',OrderDetailView.as_view())
 ]

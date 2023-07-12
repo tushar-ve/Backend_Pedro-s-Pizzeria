@@ -48,7 +48,7 @@ class User(AbstractBaseUser):
   is_admin = models.BooleanField(default=False)
   created_at = models.DateTimeField(auto_now_add=True)
   updated_at = models.DateTimeField(auto_now=True)
-  is_verified = models.BooleanField(default= False)
+  is_verified = models.BooleanField(default= False, blank=False)
   otp = models.CharField(max_length=6, null=True, blank=True)
 
   objects = UserManager()
@@ -88,6 +88,11 @@ class MenuItem(models.Model):
     protein = models.IntegerField()
     fibre = models.IntegerField()
     fat = models.IntegerField()
+    rating= models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)
+    numreviews = models.IntegerField(null=True, blank=True, default=0)
+    createdAt= models.DateTimeField(auto_now=True)
+    countInStock= models.IntegerField(null=True, blank=True, default=0)
+
     
 
 
@@ -103,17 +108,37 @@ class AboutUsModel(models.Model):
     
 
 
-class AddCartItemModel(models.Model):
-    cart_no = models.AutoField(primary_key=True)
-    qty=models.IntegerField(null=True,blank=True,default=0)
-    user= models.ForeignKey(User,on_delete=models.CASCADE)
-    name= models.ForeignKey(MenuItem, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+class CartItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
-      return self.name.name  # Assuming "name" is the string attribute of the MenuItem model
+        return f"{self.user.email} - {self.item.name}"
 
 
+class Order(models.Model):
 
+    SIZES=(
+        ('SMALL','small'),
+        ('MEDIUM', 'medium'),
+        ('LARGE', 'large'),
+    )
+
+    ORDER_STATUS=(
+        ('PENDING', 'pending'),
+        ('IN_TRANSIT','inTransit'),
+        ('DELIVERED','delivered'),
+    )
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    size= models.CharField(max_length=25, choices=SIZES, default=SIZES[0][0])
+    order_status= models.CharField(max_length=20, choices=ORDER_STATUS, default=ORDER_STATUS[0][0])
+    item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
+    quantity=models.IntegerField()
+    created_at=models.DateTimeField(auto_now_add=True)
+    updated_at=models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.customer.email} - {self.item.name}"
 
 

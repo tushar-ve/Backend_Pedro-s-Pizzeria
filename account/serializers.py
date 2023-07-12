@@ -144,11 +144,33 @@ class VerifyAccountSerializer(serializers.Serializer):
       fields=['otp', 'email']
 
 
-class AddToCartSerializer(serializers.Serializer):
-   class Meta:
-      model = AddCartItemModel, MenuItem
-      field='__all__'
-         
+class CartItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CartItem
+        fields = ['id', 'user', 'item', 'quantity']
 
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    order_status=serializers.HiddenField(default="PENDING")
+    size=serializers.CharField(max_length=25)
+    quantity=serializers.IntegerField()
+    
+
+    class Meta:
+        model=Order 
+        fields=['order_status', 'size', 'quantity','item']
+
+
+class OrderDetailSerializer(serializers.ModelSerializer):
+   order_status=serializers.HiddenField(default="PENDING")
+   size=serializers.CharField(max_length=25)
+   quantity=serializers.IntegerField()
+   created_at= serializers.DateTimeField()
+   updated_at= serializers.DateTimeField()
+
+   class Meta:
+        model=Order 
+        fields=['order_status', 'size', 'quantity','item','created_at','updated_at']
 
 

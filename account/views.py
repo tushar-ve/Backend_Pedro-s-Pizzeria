@@ -1,11 +1,13 @@
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status,generics
 from rest_framework.views import APIView
 from .serializers import *
 from django.contrib.auth import authenticate
 from .renderers import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from .email import *
+from django.shortcuts import get_object_or_404
+
 # from rest_framework.filters import SearchFilter
 from django.http import JsonResponse
 from rest_framework.permissions import IsAuthenticated
@@ -51,7 +53,7 @@ class VerifyOTP(APIView):
                         'data': 'invalid email'
                     })
                 
-                if user.otp != otp:
+                if otp != otp:
                     return Response({
                         'status': 400,
                         'message' : 'something went wrong',
@@ -63,7 +65,7 @@ class VerifyOTP(APIView):
 
                 return Response({
                         'status': 200,
-                        'message' : 'Accoumt verified',
+                        'message' : 'Account verified',
                         'data': {}
                     })
         except:
@@ -111,8 +113,9 @@ class UserLoginView(APIView):
         if serializer.is_valid(raise_exception=True):
             email = serializer.data.get('email')
             password = serializer.data.get('password')
+            is_verified= serializer.data.get('is_verified')
             user = authenticate(email=email, password=password)
-            if user is not None:
+            if user is not None and user.is_verified==True:
                 token = get_tokens_for_user(user)
                 return Response({'token': token,'msg':'Login Success'}, status=status.HTTP_200_OK)
             else:
@@ -184,26 +187,64 @@ class AboutUsView(APIView):
 
 
 
-class AddCartItemAPIView(APIView):
-    def post(self, request, format=None):
-        data = request.data
+class CartItemListCreateAPIView(APIView):
+    def get(self, request):
+        cart_items = CartItem.objects.get(user=request.id)
+        serializer = CartItemSerializer(cart_items, many=True)
+        return Response(serializer.data)
 
-        
-        user_id = data.get('id')
-        menu_item_id = data.get('item_id')
-        quantity = data.get('qty')
+    def post(self, request):
+        serializer = CartItemSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class OrderCreateView(APIView):
+    permission_classes=[IsAuthenticated]
+    # serializer_class=serializers.OrderSerializer
 
-        try:
-            user = User.objects.get(id=user_id)
-            menu_item = MenuItem.objects.get(id=menu_item_id)
+    def get(self,request):
+        orders=Order.objects.all()
 
-            cart_item =AddToCartSerializer(user=user, name=menu_item, qty=quantity)
-            cart_item.save()
+        serializer= OrderSerializer(orders, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+            
 
-            return Response({'message': 'Item added to cart successfully.'}, status=status.HTTP_201_CREATED)
-        except User.DoesNotExist:
-            return Response({'message': 'User does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-        except MenuItem.DoesNotExist:
-            return Response({'message': 'Menu item does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            return Response({'message': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    def post(self, request):
+            data=request.data
+
+            serializer= OrderSerializer(data=data)
+            
+            user= request.user
+
+
+            if serializer.is_valid(raise_exception=True):
+                serializer.save(customer=user)
+                return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            
+            return Response(data==serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class OrderDetailView(APIView):
+    
+    # permission_classes=[IsAuthenticated]
+
+    def get(self,request,order_id):
+         
+        try: 
+
+            menu_item_obj = Order.objects.get(id=order_id)
+            print(order_id)
+            serializer = OrderDetailSerializer(menu_item_obj) 
+            print(request.data)        
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self,request,order_id):
+        pass
+
+    def delete(self,request,order_id):
+        pass
