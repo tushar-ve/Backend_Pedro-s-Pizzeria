@@ -115,9 +115,9 @@ class UserLoginView(APIView):
             password = serializer.data.get('password')
             is_verified= serializer.data.get('is_verified')
             user = authenticate(email=email, password=password)
-            if user is not None and user.is_verified==True:
+            if user is not None:
                 token = get_tokens_for_user(user)
-                return Response({'token': token,'msg':'Login Success'}, status=status.HTTP_200_OK)
+                return Response({'token': token,'is_verified':is_verified,'msg':'Login Success'}, status=status.HTTP_200_OK)
             else:
                 return Response({'errors' : {'non_field_errors': ['Email or Password is not Valid']}}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -229,7 +229,7 @@ class OrderCreateView(APIView):
 
 class OrderDetailView(APIView):
     
-    # permission_classes=[IsAuthenticated]
+    permission_classes=[IsAuthenticated]
 
     def get(self,request,order_id):
          
@@ -244,7 +244,70 @@ class OrderDetailView(APIView):
              return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def put(self,request,order_id):
-        pass
+        data=request.data
+        menu_item_obj = Order.objects.get(id=order_id)
+
+        serializer = OrderDetailSerializer(menu_item_obj, data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+        
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self,request,order_id):
-        pass
+        menu_item_obj = Order.objects.get(id=order_id)
+
+        menu_item_obj.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+class UpdateOrderStatus(APIView):
+    permission_classes=[IsAuthenticated]
+    def put(self,request, order_id):
+        menu_item_obj = Order.objects.get(id=order_id)
+
+        data= request.data
+
+        serializer = OrderStatusUpdateSerializer(menu_item_obj, data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(data=serializer.data, status=status.HTTP_202_ACCEPTED)
+        
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserOrderView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request, user_id):
+        try:
+            user=User.objects.get(pk=user_id)
+            
+            orders= Order.objects.all().filter(customer=user)
+            serializer = OrderDetailSerializer(orders, many=True)
+
+            return Response(data= serializer.data, status=status.HTTP_200_OK)
+        except:
+         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class UserOrderDetail(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self,request,user_id,order_id):
+        try:
+            user=User.objects.get(pk=user_id)
+
+            order= Order.objects.all().filter(customer=user).filter(pk=order_id)
+            serializer = OrderDetailSerializer(order, many=True)
+
+            return Response(data= serializer.data, status=status.HTTP_200_OK)
+
+        except:
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+

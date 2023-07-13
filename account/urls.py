@@ -31,5 +31,8 @@ urlpatterns = [
     path('menuitems/<str:item_id>/', MenuDescriptionView.as_view()),
     path('add-cart/', CartItemListCreateAPIView.as_view()),
     path('order/', OrderCreateView.as_view()),
-    path('order/<str:order_id>',OrderDetailView.as_view())
+    path('order/<str:order_id>',OrderDetailView.as_view()),
+    path('update-status/<str:order_id>/', UpdateOrderStatus.as_view()),
+    path('user/<str:user_id>/orders/', UserOrderView.as_view()),
+    path('user/<str:user_id>/orders/<str:order_id>/', UserOrderDetail.as_view())
 ]

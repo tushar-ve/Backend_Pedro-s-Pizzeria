@@ -43,7 +43,7 @@ admin.site.register(CartItem)
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display=['id','size','order_status','size','created_at']
+    list_display=['id','customer','order_status','size','created_at']
     list_filter=['updated_at','order_status']
 
 admin.site.register(Order, OrderAdmin)

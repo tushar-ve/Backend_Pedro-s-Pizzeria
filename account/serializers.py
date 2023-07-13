@@ -163,7 +163,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
-   order_status=serializers.HiddenField(default="PENDING")
+   order_status=serializers.CharField()
    size=serializers.CharField(max_length=25)
    quantity=serializers.IntegerField()
    created_at= serializers.DateTimeField()
@@ -174,3 +174,9 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         fields=['order_status', 'size', 'quantity','item','created_at','updated_at']
 
 
+class OrderStatusUpdateSerializer(serializers.ModelSerializer):
+   order_status=serializers.CharField()
+
+   class Meta:
+      model=Order 
+      fields=['order_status']
