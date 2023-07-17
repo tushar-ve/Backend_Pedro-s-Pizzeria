@@ -188,16 +188,28 @@ class AboutUsView(APIView):
 
 
 class CartItemListCreateAPIView(APIView):
+
     def get(self, request):
-        cart_items = CartItem.objects.get(user=request.id)
+
+        cart_items = CartItem.objects.filter(user=request.user.id)
+
         serializer = CartItemSerializer(cart_items, many=True)
+
         return Response(serializer.data)
 
+
+
+
     def post(self, request):
+
         serializer = CartItemSerializer(data=request.data)
+
         if serializer.is_valid():
+
             serializer.save(user=request.user)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class OrderCreateView(APIView):

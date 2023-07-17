@@ -54,7 +54,7 @@ class User(AbstractBaseUser):
   objects = UserManager()
 
   USERNAME_FIELD = 'email'
-  REQUIRED_FIELDS = ['name', 'tc', 'is_verified']
+  REQUIRED_FIELDS = ['name', 'tc']
 
   def __str__(self):
       return self.email
@@ -106,7 +106,6 @@ class AboutUsModel(models.Model):
     def __str__(self) :
         return self.des_title
     
-
 
 class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
