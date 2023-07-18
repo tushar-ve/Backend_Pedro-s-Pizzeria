@@ -123,10 +123,10 @@ class MenuItemSerializer(serializers.ModelSerializer):
         model = MenuItem
         fields = '__all__'
 
-class MenuItemSearchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MenuItem
-        fields = ['name']
+# class MenuItemSearchSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = MenuItem
+#         fields = ['name']
 
 
 class AboutUsSerializer(serializers.ModelSerializer):
@@ -145,12 +145,27 @@ class VerifyAccountSerializer(serializers.Serializer):
 
 
 class CartItemSerializer(serializers.ModelSerializer):
+    item = serializers.PrimaryKeyRelatedField(
 
+        queryset=MenuItem.objects.all(), write_only=True)
+
+
+
+
+    amount = serializers.DecimalField(
+
+        source='item.amount', max_digits=10, decimal_places=2, read_only=True)
+
+    image = serializers.ImageField(source='item.image', read_only=True)
+
+    name = serializers.CharField(source='item.name', read_only=True)
     class Meta:
 
         model = CartItem
 
-        fields = ['id', 'user', 'item', 'quantity']
+        fields = ['id', 'user', 'item',
+
+                  'quantity', 'name', 'amount', 'image']
 
 
 

@@ -187,30 +187,47 @@ class AboutUsView(APIView):
 
 
 
+
 class CartItemListCreateAPIView(APIView):
-
+    # permission_classes= [IsAuthenticated]
     def get(self, request):
-
-        cart_items = CartItem.objects.filter(user=request.user.id)
-
+        cart_items = CartItem.objects.all()
         serializer = CartItemSerializer(cart_items, many=True)
-
         return Response(serializer.data)
-
-
-
 
     def post(self, request):
 
-        serializer = CartItemSerializer(data=request.data)
+        data = request.data
+        existing_item = CartItem.objects.filter(item=data["item"]).first()
+        if existing_item:
+            existing_item.quantity += int(data["quantity"])
+            existing_item.save()
+            serializer = CartItemSerializer(existing_item)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
 
-        if serializer.is_valid():
+            serializer = CartItemSerializer(data=data)
 
-            serializer.save(user=request.user)
+            if serializer.is_valid():
 
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+                serializer.save()
+
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    # def post(self, request):
+
+    #     serializer = CartItemSerializer(data=request.data)
+
+    #     if serializer.is_valid():
+
+    #         serializer.save(user=request.user)
+
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class OrderCreateView(APIView):
     permission_classes=[IsAuthenticated]
