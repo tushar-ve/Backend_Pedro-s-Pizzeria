@@ -110,7 +110,7 @@ class AboutUsModel(models.Model):
 class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
+    quantity = models.IntegerField(default=1)
 
     def __str__(self):
         return f"{self.user.email} - {self.item.name}"

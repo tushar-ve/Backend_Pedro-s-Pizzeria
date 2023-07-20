@@ -39,6 +39,11 @@ admin.site.register(User, UserModelAdmin)
 admin.site.register(MenuItem)
 
 admin.site.register(AboutUsModel)
+
+
+class CartItemAdmin(admin.ModelAdmin):
+    list_display=['id','item', 'quantity']
+
 admin.site.register(CartItem)
 
 

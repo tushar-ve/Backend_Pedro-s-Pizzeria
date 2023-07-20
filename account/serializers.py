@@ -145,31 +145,20 @@ class VerifyAccountSerializer(serializers.Serializer):
 
 
 class CartItemSerializer(serializers.ModelSerializer):
-    item = serializers.PrimaryKeyRelatedField(
-
-        queryset=MenuItem.objects.all(), write_only=True)
-
-
-
-
-    amount = serializers.DecimalField(
-
-        source='item.amount', max_digits=10, decimal_places=2, read_only=True)
+    item = serializers.PrimaryKeyRelatedField(queryset=MenuItem.objects.all(), write_only=True)
+    amount = serializers.DecimalField(source='item.amount', max_digits=10, decimal_places=2, read_only=True)
 
     image = serializers.ImageField(source='item.image', read_only=True)
 
     name = serializers.CharField(source='item.name', read_only=True)
     class Meta:
-
         model = CartItem
-
-        fields = ['id', 'user', 'item',
-
-                  'quantity', 'name', 'amount', 'image']
+        fields = ['id', 'user', 'item', 'quantity', 'name', 'amount', 'image']
 
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    
     order_status=serializers.HiddenField(default="PENDING")
     size=serializers.CharField(max_length=25)
     quantity=serializers.IntegerField()
