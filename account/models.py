@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import BaseUserManager,AbstractBaseUser
 from django.utils.text import slugify
 
@@ -83,7 +84,7 @@ class MenuItem(models.Model):
     ingredients = models.CharField(max_length=500)
     veg= models.BooleanField(default=True)
     amount= models.BigIntegerField()
-    energy = models.IntegerField()
+    energy = models.PositiveIntegerField()
     carbs= models.IntegerField()
     protein = models.IntegerField()
     fibre = models.IntegerField()
@@ -115,6 +116,17 @@ class CartItem(models.Model):
     def __str__(self):
         return f"{self.user.email} - {self.item.name}"
 
+class Payment(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    status = models.CharField(max_length=20)
+
+    transaction_id = models.CharField(max_length=100)
+    def __str__(self):
+        return f"{self.user.email} - {self.status}"
 
 class Order(models.Model):
 
@@ -133,11 +145,22 @@ class Order(models.Model):
     size= models.CharField(max_length=25, choices=SIZES, default=SIZES[0][0])
     order_status= models.CharField(max_length=20, choices=ORDER_STATUS, default=ORDER_STATUS[0][0])
     item = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
-    quantity=models.IntegerField()
+    quantity=models.PositiveBigIntegerField()
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
+    billing_status = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.customer.email} - {self.item.name}"
 
 
+class Address_Order(models.Model):
+    customer = models.ForeignKey(User, on_delete=models.CASCADE)
+    address1 = models.CharField(max_length=350)
+    address2 = models.CharField(max_length=350)
+    city = models.CharField(max_length=100)
+    phone = models.PositiveBigIntegerField()
+    post_code = models.BigIntegerField()
+
+    def __str__(self):
+        return f"{self.phone} - {self.city}"

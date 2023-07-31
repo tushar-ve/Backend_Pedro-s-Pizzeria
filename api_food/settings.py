@@ -178,6 +178,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 from datetime import timedelta
 
+RAZORPAY_API_KEY = 'rzp_test_QDhcbvNRJScqgI'
+
+RAZORPAY_KEY_SECRET = 'v9jQS0SR8WlqYMPtl5iIbgzE'
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),

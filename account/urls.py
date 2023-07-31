@@ -36,5 +36,9 @@ urlpatterns = [
     path('order/<str:order_id>',OrderDetailView.as_view()),
     path('update-status/<str:order_id>/', UpdateOrderStatus.as_view()),
     path('user/<str:user_id>/orders/', UserOrderView.as_view()),
-    path('user/<str:user_id>/orders/<str:order_id>/', UserOrderDetail.as_view())
+    path('user/<str:user_id>/orders/<str:order_id>/', UserOrderDetail.as_view()),
+    path('user/payment/', InitiatePayment.as_view()),
+    path('receipt/<str:transaction_id>/', ReceiptData.as_view(), name='receipt-data'),
+    path('handle_payement/', HandlePayment.as_view()),
+    path('address-order/', AddressOrderAPIView.as_view())
 ]

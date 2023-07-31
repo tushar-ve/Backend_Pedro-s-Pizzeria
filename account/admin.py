@@ -39,6 +39,7 @@ admin.site.register(User, UserModelAdmin)
 admin.site.register(MenuItem)
 
 admin.site.register(AboutUsModel)
+admin.site.register(Address_Order)
 
 
 class CartItemAdmin(admin.ModelAdmin):
@@ -52,3 +53,6 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter=['updated_at','order_status']
 
 admin.site.register(Order, OrderAdmin)
+
+
+admin.site.register(Payment)

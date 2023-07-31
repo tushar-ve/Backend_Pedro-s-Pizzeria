@@ -158,18 +158,22 @@ class CartItemSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    
-    order_status=serializers.HiddenField(default="PENDING")
-    size=serializers.CharField(max_length=25)
-    quantity=serializers.IntegerField()
-    
+    # Other fields in the serializer...
+    item = serializers.PrimaryKeyRelatedField(queryset=MenuItem.objects.all(), write_only=True)
+    amount = serializers.DecimalField(source='item.amount', max_digits=10, decimal_places=2, read_only=True)
+
+    image = serializers.ImageField(source='item.image', read_only=True)
+
+    name = serializers.CharField(source='item.name', read_only=True)
+    customer = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), default=serializers.CurrentUserDefault())
 
     class Meta:
-        model=Order 
-        fields=['order_status', 'size', 'quantity','item']
+        model = Order
+        fields = ['id', 'order_status', 'size', 'quantity', 'item', 'name', 'amount', 'image', 'billing_status', 'customer']
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
+   
    order_status=serializers.CharField()
    size=serializers.CharField(max_length=25)
    quantity=serializers.IntegerField()
@@ -178,7 +182,13 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
    class Meta:
         model=Order 
-        fields=['order_status', 'size', 'quantity','item','created_at','updated_at']
+        fields=['order_status', 'quantity','item','created_at','updated_at']
+
+
+class AddressOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address_Order
+        fields = '__all__'
 
 
 class OrderStatusUpdateSerializer(serializers.ModelSerializer):
@@ -187,3 +197,12 @@ class OrderStatusUpdateSerializer(serializers.ModelSerializer):
    class Meta:
       model=Order 
       fields=['order_status']
+
+
+class PaymentSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = Payment
+
+        fields = '__all__'

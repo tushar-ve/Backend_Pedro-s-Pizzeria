@@ -10,8 +10,119 @@ from django.shortcuts import get_object_or_404
 
 # from rest_framework.filters import SearchFilter
 from django.http import JsonResponse
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 # Create your views here.
+import razorpay
+
+
+
+razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_KEY_SECRET))
+
+
+
+
+class InitiatePayment(APIView):
+
+    permission_classes = [IsAuthenticated | AllowAny]
+
+    def get(self, request):
+            payment = Payment.objects.all()
+            serializer=PaymentSerializer(payment,many=True)
+            return Response(serializer.data,status=status.HTTP_200_OK)
+
+
+    def post(self, request):
+            # Get all cart items for the authenticated user
+        cart_items = CartItem.objects.filter(user=request.user)
+        # Calculate the total amount for payment
+        total_amount = 0
+        for cart_item in cart_items:
+            total_amount += cart_item.item.amount * cart_item.quantity
+        # Convert the total amount to integer paise (minimum value: 100 paise)
+        total_amount_in_paise = int(total_amount * 100)
+        total_amount_in_paise = max(total_amount_in_paise, 100)  # Ensure the minimum value is 100 paise (Rs. 1)
+        # Create a Razorpay order
+        order_response = razorpay_client.order.create({
+           'amount': total_amount_in_paise,
+           'currency': 'INR',
+        })
+        # Create a single Payment record in your database for the entire cart
+        payment = Payment.objects.create(
+            user=request.user,
+            status='pending',
+            transaction_id=order_response.get('id'),
+            subtotal=total_amount,
+        )
+    # Assign all cart items to the payment record
+        for cart_item in cart_items:
+            cart_item.payment = payment
+            cart_item.save()
+        # Return the payment details to the frontend
+        data = {
+            'payment_amount': total_amount_in_paise,
+            'payment_order_id': order_response.get('id'),
+        }
+
+        return Response(data)
+
+
+class HandlePayment(APIView):
+    def post(self, request):
+        try:
+            # Assuming you have received the transaction_id and status from the payment gateway
+            transaction_id = request.data.get('transaction_id')
+            status = request.data.get('status')
+            
+            print("Received transaction_id:", transaction_id)
+            print("Received status:", status)
+
+            # Retrieve the payment record using the transaction_id
+            payment = get_object_or_404(Payment, transaction_id=transaction_id)
+            
+            # Update the payment status in the database
+            payment.status = status
+            payment.save()
+
+            print("Payment status updated successfully.")
+
+            return Response({'status': 'success'})
+        except Exception as e:
+            print("Error handling payment:", str(e))
+            return Response({'status': 'error'})
+
+
+class ReceiptData(APIView):
+    permission_classes = [IsAuthenticated | AllowAny]
+    def get(self, request, transaction_id):
+        # Check if the user is authenticated before fetching the payment record
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication required"}, status=401)
+        # Retrieve the payment record using the transaction_id
+        try:
+            payment = Payment.objects.get(transaction_id=transaction_id, user=request.user)
+        except Payment.DoesNotExist:
+            return Response({"error": "Payment record not found"}, status=404)
+        # Fetch all cart items associated with the payment
+        cart_items = CartItem.objects.filter(user=request.user)
+        # Serialize cart items to retrieve their data
+        cart_item_serializer = CartItemSerializer(cart_items, many=True)
+        # Extract and add cart item details (title and image) to the serialized cart items
+        cart_items_data = cart_item_serializer.data
+        for i in range(len(cart_items_data)):
+            cart_items_data[i]["item_name"] = cart_items[i].item.name
+            cart_items_data[i]["item_image"] = cart_items[i].item.image.url
+        # Here you can add any other relevant data you want to include in the receipt
+        receipt_data = {
+            "transaction_id": payment.transaction_id,
+            "user_name": payment.user.name,
+            "amount": payment.subtotal,
+            "cartItems": cart_items_data,  # Add the serialized cart items to the receipt data
+            # Add other relevant receipt details here
+        }
+        return Response(receipt_data)
+    
+
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
@@ -341,12 +452,29 @@ class OrderCreateView(APIView):
             
 
     def post(self, request):
-        serializer = CartItemSerializer(data=request.data)
+        serializer = OrderSerializer(data=request.data, context={'request': request})
 
         if serializer.is_valid():
+            # Set the authenticated user as the customer for the order
+            serializer.validated_data['customer'] = request.user
+
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class AddressOrderAPIView(APIView):
+    permission_classes=[IsAuthenticated]
+    def get(self, request):
+        address_orders = Address_Order.objects.all()
+        serializer = AddressOrderSerializer(address_orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = AddressOrderSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -387,6 +515,11 @@ class OrderDetailView(APIView):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
+
+
+
+
 
 class UpdateOrderStatus(APIView):
     permission_classes=[IsAuthenticated]
